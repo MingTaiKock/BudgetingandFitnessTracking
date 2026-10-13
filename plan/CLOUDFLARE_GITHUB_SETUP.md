@@ -1,6 +1,18 @@
-# Cloudflare Pages + GitHub setup
+# Cloudflare + GitHub setup
 
 For Little Wins, using https://github.com/MingTaiKock/BudgetingandFitnessTracking.
+
+## Existing Worker project (your current setup)
+
+The current Cloudflare project is a Worker named `budgetingandfitnesstracking`, rather than a Pages project. It can serve the same static app.
+
+Under Settings > Builds, use production branch `main`, build command `npm run build`, deploy command `npx wrangler deploy --name budgetingandfitnesstracking --assets ./dist`, and root directory `/`.
+
+The repository's `wrangler.jsonc` supplies the required compatibility date and the `dist` asset directory. It also configures single-page application fallback. No server script is needed. The compatibility date selects Cloudflare runtime behavior; it is not the app's publication date.
+
+Your dashboard currently has its workers.dev URL disabled. The configuration preserves that setting, and disables preview URLs. Successful deployment alone therefore does not provide a publicly reachable URL. When ready to make the app reachable, deliberately enable workers.dev and set `workers_dev` to true in this configuration so later deployments retain your choice. Keep preview URLs disabled unless wanted.
+
+The Pages instructions below are an alternative, not fields to enter in this Worker project.
 
 ## Connect the repository
 

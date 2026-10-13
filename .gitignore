@@ -3,6 +3,7 @@ dist/
 .playwright-cli/
 *.log
 .tools/
+.wrangler/
 
 # Local verification artifacts and generated animation previews
 output/
