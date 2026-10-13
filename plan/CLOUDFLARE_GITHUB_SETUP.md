@@ -4,13 +4,13 @@ For Little Wins, using https://github.com/MingTaiKock/BudgetingandFitnessTrackin
 
 ## Existing Worker project (your current setup)
 
-The current Cloudflare project is a Worker named `budgetingandfitnesstracking`, rather than a Pages project. It can serve the same static app.
+The current Cloudflare project is a Worker named `smallwins`, rather than a Pages project. It serves the same static app at https://smallwins.mtkock1994.workers.dev.
 
-Under Settings > Builds, use production branch `main`, build command `npm run build`, deploy command `npx wrangler deploy --name budgetingandfitnesstracking --assets ./dist`, and root directory `/`.
+Under Settings > Builds, use production branch `main`, build command `npm run build`, deploy command `npx wrangler deploy --assets ./dist`, and root directory `/`. Wrangler reads the Worker name from the repository configuration.
 
 The repository's `wrangler.jsonc` supplies the required compatibility date and the `dist` asset directory. It also configures single-page application fallback. No server script is needed. The compatibility date selects Cloudflare runtime behavior; it is not the app's publication date.
 
-Your dashboard currently has its workers.dev URL disabled. The configuration preserves that setting, and disables preview URLs. Successful deployment alone therefore does not provide a publicly reachable URL. When ready to make the app reachable, deliberately enable workers.dev and set `workers_dev` to true in this configuration so later deployments retain your choice. Keep preview URLs disabled unless wanted.
+The user approved the `smallwins.mtkock1994.workers.dev` address. The configuration enables the production workers.dev URL and keeps preview URLs disabled. Future deployments retain this choice.
 
 The Pages instructions below are an alternative, not fields to enter in this Worker project.
 
