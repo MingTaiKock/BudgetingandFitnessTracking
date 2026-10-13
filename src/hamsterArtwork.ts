@@ -1,16 +1,16 @@
-import mochiPoses from '../output/characters/pose-studies/mochi-poses-v1.png';
-import chonkPoses from '../output/characters/pose-studies/chonk-poses-v1.png';
-import mochiCozy from '../output/characters/diverse-activities/mochi-cozy-v1.png';
-import chonkCozy from '../output/characters/diverse-activities/chonk-cozy-v1.png';
-import mochiAdventure from '../output/characters/diverse-activities/mochi-little-adventures-v1.png';
-import chonkAdventure from '../output/characters/diverse-activities/chonk-little-adventures-v1.png';
-import mochiMove from '../output/characters/diverse-activities/mochi-move-v1.png';
-import chonkMove from '../output/characters/diverse-activities/chonk-move-v1.png';
-import mochiWeights from '../output/characters/gym-equipment/mochi-weights-v1.png';
-import mochiMachines from '../output/characters/gym-equipment/mochi-machines-v1.png';
-import chonkWeights from '../output/characters/gym-equipment/chonk-weights-v1.png';
-import chonkMachines from '../output/characters/gym-equipment/chonk-machines-v1.png';
-import chonkFunctional from '../output/characters/gym-equipment/chonk-functional-v1.png';
+import mochiPoses from '../assets/characters/pose-studies/mochi-poses-v1.png';
+import chonkPoses from '../assets/characters/pose-studies/chonk-poses-v1.png';
+import mochiCozy from '../assets/characters/diverse-activities/mochi-cozy-v1.png';
+import chonkCozy from '../assets/characters/diverse-activities/chonk-cozy-v1.png';
+import mochiAdventure from '../assets/characters/diverse-activities/mochi-little-adventures-v1.png';
+import chonkAdventure from '../assets/characters/diverse-activities/chonk-little-adventures-v1.png';
+import mochiMove from '../assets/characters/diverse-activities/mochi-move-v1.png';
+import chonkMove from '../assets/characters/diverse-activities/chonk-move-v1.png';
+import mochiWeights from '../assets/characters/gym-equipment/mochi-weights-v1.png';
+import mochiMachines from '../assets/characters/gym-equipment/mochi-machines-v1.png';
+import chonkWeights from '../assets/characters/gym-equipment/chonk-weights-v1.png';
+import chonkMachines from '../assets/characters/gym-equipment/chonk-machines-v1.png';
+import chonkFunctional from '../assets/characters/gym-equipment/chonk-functional-v1.png';
 
 // Viewports select the existing drawings without redrawing or altering their pixels.
 export const HAMSTER_ART={
