@@ -1,20 +1,26 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
-import { reviewWeek, metricChange } from '../wellness.ts';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { reviewWeek } from '../wellness.ts';
 import { money, dateKey } from '../domain.ts';
 import { addDays, shortDate, weekStart } from '../dates.ts';
-import { SectionTitle, Empty, type FeatureProps } from '../components.tsx';
-import { PrototypeArt } from '../PrototypeArt.tsx';
+import { SectionTitle, Empty, Field, type FeatureProps } from '../components.tsx';
+import { weeklyEvidence } from '../focused.ts';
+import { CATEGORIES } from '../model.ts';
 
 export default function WeeklyReview({state}:Pick<FeatureProps,'state'>) {
-  const today=dateKey(),[selected,setSelected]=useState(weekStart(today));
-  const r=reviewWeek(state,selected),delta=metricChange(r.minutes,r.previousMinutes);
-  return <section className="weekly-review" aria-label="Weekly review">
-    <SectionTitle title="Your week, together" subtitle="A clear view of the little things you recorded." action={<div className="month-picker"><button className="icon-button" aria-label="Previous review week" onClick={()=>setSelected(addDays(selected,-7))}><ChevronLeft size={18}/></button><span>{shortDate(r.start)} – {shortDate(r.end)}</span><button className="icon-button" aria-label="Next review week" disabled={selected>=weekStart(today)} onClick={()=>setSelected(addDays(selected,7))}><ChevronRight size={18}/></button></div>}/>
-    <div className="wellness-cards"><article className="wellness-card finance"><PrototypeArt name="finance"/><span>Logged spending</span><strong>{money(r.spent,state.profile.currency)}</strong><small>{money(r.income,state.profile.currency)} income logged</small></article><article className="wellness-card movement"><PrototypeArt name="fitness"/><span>Movement recorded</span><strong>{r.minutes}<small> min</small></strong><small>{r.workouts} workouts · {r.restDays} rest days logged</small></article><article className="wellness-card savings"><PrototypeArt name="finance"/><span>Savings recorded</span><strong>{money(r.saved,state.profile.currency)}</strong><small>Your recorded contributions</small></article>{state.preferences.connectionEnabled&&<article className="wellness-card connection"><PrototypeArt name="connection"/><span>Connection recorded</span><strong>{r.connectionMinutes}<small> min</small></strong><small>{r.connections.length} moments you chose to log</small></article>}</div>
-    <div className="panel review-details"><div className="review-coverage"><CalendarDays size={20}/><p><strong>{r.loggedDays} of {r.elapsedDays} elapsed days have entries.</strong><br/>Days without an entry are unknown, not failed days.</p></div><div className="consistency-days">{r.days.map(d=><div key={d.date} className={d.future?'future':d.money||d.movement||d.checkin||d.connection?'recorded':''}><span>{new Date(`${d.date}T12:00:00`).toLocaleDateString('en-SG',{weekday:'short'})}</span><strong>{d.future?'—':d.rest?'Rest':d.movement?'Move':d.money?'Money':d.connection?'Connect':d.checkin?'Check-in':'No entry'}</strong></div>)}</div>
-      <p className="settings-note">Movement: {delta.absolute>=0?'+':''}{delta.absolute} minutes versus the same {r.elapsedDays} days last week{delta.percent===null?' (no percentage: the previous period had zero recorded minutes).':` (${delta.percent>=0?'+':''}${delta.percent}%).`}</p>
-      <details><summary>See the records behind this week</summary><div className="evidence-list">{r.transactions.map(t=><p key={t.id}>{shortDate(t.date)} · {t.note||t.category} · {t.type} · {money(t.amountCents,state.profile.currency)}</p>)}{r.workoutRecords.map(w=><p key={w.id}>{shortDate(w.date)} · {w.activity} · {w.minutes} min</p>)}{r.contributions.map(c=><p key={c.id}>{shortDate(c.date)} · savings contribution · {money(c.amountCents,state.profile.currency)}</p>)}{r.connections.map(c=><p key={c.id}>{shortDate(c.date)} · {c.activity.replaceAll('-',' ')} · {c.minutes} min connection</p>)}{r.loggedDays===0&&<Empty title="A quiet page, ready for your week">Add a money entry, workout or check-in from Today.</Empty>}</div></details>
-    </div>
-  </section>;
+ const today=dateKey(),[selected,setSelected]=useState(weekStart(today)),[domain,setDomain]=useState<'money'|'movement'>('money'),[category,setCategory]=useState('all');
+ const r=reviewWeek(state,selected);
+ const rows=weeklyEvidence(state,selected,domain).filter(row=>domain!=='money'||category==='all'||(category==='income'||category==='savings'?row.kind===category:row.kind==='expense'&&row.category===category));
+ const dates=[...new Set(rows.map(row=>row.date))];
+ return <section className="weekly-review" aria-label="Weekly insights">
+  <SectionTitle title="Your week, together" subtitle="Weekly review and your records, in one place." action={<div className="month-picker"><button className="icon-button" aria-label="Previous review week" onClick={()=>setSelected(addDays(selected,-7))}><ChevronLeft size={18}/></button><span>{shortDate(r.start)} – {shortDate(r.end)} {r.start.slice(0,4)}</span><button className="icon-button" aria-label="Next review week" disabled={selected>=weekStart(today)} onClick={()=>setSelected(addDays(selected,7))}><ChevronRight size={18}/></button></div>}/>
+  <div className="filter-row flow-tabs">{(['money','movement'] as const).map(d=><button key={d} className={domain===d?'selected':''} aria-pressed={domain===d} onClick={()=>setDomain(d)}>{d==='money'?'Money':'Movement'}</button>)}</div>
+  <section className="panel focused-evidence"><h2>{domain==='money'?`${money(r.spent,state.profile.currency)} spent`:`${r.workouts} workouts · ${r.minutes} minutes`}</h2><p>{domain==='money'?`${money(r.income,state.profile.currency)} income · ${money(r.saved,state.profile.currency)} added to goals`:`${r.restDays} rest days recorded`} in the selected week.</p>
+   {domain==='money'&&<Field label="Show money records"><select value={category} onChange={e=>setCategory(e.target.value)}><option value="all">All money records</option><option value="income">Income</option><option value="savings">Savings contributions</option>{CATEGORIES.map(c=><option key={c.id} value={c.id}>{c.name} expenses</option>)}</select></Field>}
+   <p className="settings-note">{rows.length} records · newest dates first</p>
+   {dates.map(date=><section className="evidence-day" key={date}><h3><time dateTime={date}>{shortDate(date)} {date.slice(0,4)}</time></h3>{rows.filter(row=>row.date===date).map(row=><div className="record-row" key={row.id}><div className="record-text"><strong>{row.label}</strong><span>{row.kind==='savings'?'Savings contribution':row.kind==='expense'?`Expense · ${CATEGORIES.find(c=>c.id===row.category)?.name}`:row.kind==='income'?'Income':row.kind==='rest'?'Rest':'Movement'}</span></div><strong>{row.amountCents!==undefined?money(row.amountCents,state.profile.currency):row.minutes!==undefined?`${row.minutes} min`:''}</strong></div>)}</section>)}
+   {!rows.length&&<Empty title="No matching records this week">Try another week or filter, or add an entry in Money or Movement.</Empty>}
+   <p className="settings-note">Days without entries may be incomplete. They are not failed days.</p>
+  </section>
+ </section>;
 }

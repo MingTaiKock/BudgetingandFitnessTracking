@@ -4,8 +4,11 @@ import { dateKey } from '../dates.ts';
 import { exerciseHistory, historyOptions, type HistoryWindow } from '../exerciseProgress.ts';
 import { EQUIPMENT_LABELS } from '../exercises.ts';
 import { Field, SectionTitle } from '../components.tsx';
+import type { FeatureProps } from '../components.tsx';
+import LinkExerciseHistory from './LinkExerciseHistory.tsx';
 
-export default function ExerciseProgress({state}:{state:State}) {
+export default function ExerciseProgress(props:Pick<FeatureProps,'state'> & Partial<Omit<FeatureProps,'state'>>) {
+  const {state}=props;
   const options=historyOptions(state.workouts);
   const [selection,setSelection]=useState('');
   const [window,setWindow]=useState<HistoryWindow>(90);
@@ -22,6 +25,6 @@ export default function ExerciseProgress({state}:{state:State}) {
       {history.length>8&&<button className="button secondary" onClick={()=>setShowAll(!showAll)}>{showAll?'Show latest 8 days':`Show all ${history.length} days`}</button>}
       <p className="history-context">Loads are as you recorded them. Use a consistent setup and weight convention; these entries are a reference, not a target to beat.</p>
     </>:<p className="history-empty">Your first library exercise starts this story. Add one to a routine in My fitness, then log a set with Mochi and Chonk.</p>}
-    {missing&&<p className="history-context">Older or custom exercises without a library identity and equipment stay in your movement diary. They aren’t combined here based on names alone.</p>}
+    {missing&&props.change&&props.notice&&<LinkExerciseHistory state={state} change={props.change} notice={props.notice}/>}
   </section>;
 }

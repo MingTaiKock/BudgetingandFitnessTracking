@@ -4,6 +4,7 @@ dist/
 *.log
 .tools/
 .wrangler/
+secret/
 
 # Local verification artifacts and generated animation previews
 output/

@@ -3,13 +3,11 @@ import { Check, ChevronLeft, ChevronRight, RotateCcw, Timer, X } from 'lucide-re
 import type { WorkoutSession as Session } from '../model.ts';
 import { finishSession, selectExercise } from '../routines.ts';
 import { exerciseHistory } from '../exerciseProgress.ts';
-import { EXERCISE_ART } from '../hamsterArtwork.ts';
 import { EQUIPMENT_LABELS } from '../exercises.ts';
-import { SupportingArt } from '../SupportingArt.tsx';
 import { Dialog, Field, FormError, Progress, type FeatureProps } from '../components.tsx';
 
-export default function WorkoutSession({state,change,notice,onClose,onFinished,storageWarning}:FeatureProps & {
-  onClose:()=>void; onFinished:(id:string)=>void; storageWarning:string|null;
+export default function WorkoutSession({state,change,notice,onClose,onFinished,storageWarning,saveLabel}:FeatureProps & {
+  onClose:()=>void; onFinished:(id:string)=>void; storageWarning:string|null;saveLabel?:string;
 }) {
   const [now,setNow]=useState(Date.now());
   const [error,setError]=useState('');
@@ -23,7 +21,9 @@ export default function WorkoutSession({state,change,notice,onClose,onFinished,s
   const done=entries.filter(e=>e.exerciseIndex===index).length;
   const total=routine.exercises.reduce((sum,e)=>sum+e.sets,0);
   const elapsed=Math.max(0,Math.floor((now-session.startedAt)/1000));
-  const exerciseArt=exercise.exerciseId?EXERCISE_ART[exercise.exerciseId]:undefined;
+  const allHistory=exerciseHistory(state.workouts,exercise,session.date,'all',session.id);
+  const template=state.routines.find(r=>r.id===routine.id);
+  const changed=template&&JSON.stringify(template)!==JSON.stringify(routine);
   const rest=Math.max(0,Math.ceil(((session.restEndsAt??0)-now)/1000));
   const duration=session.minutes??String(Math.max(1,Math.ceil(elapsed/60)));
   function update(patch:Partial<Session>) {
@@ -51,8 +51,9 @@ export default function WorkoutSession({state,change,notice,onClose,onFinished,s
       notice(`${entries.length} sets recorded. Your movement diary is updated.`);onFinished(session!.id);
     } catch (err) {setError(err instanceof Error?err.message:'Check your session duration and try again.');}
   }
-  return <Dialog title={routine.name} onClose={onClose} wide>
-    {storageWarning?<p className="storage-warning" role="alert">{storageWarning} Keep this tab open and download a backup in Settings.</p>:<p className="session-save-status">Saved in this browser · close and resume whenever you need.</p>}
+  return <Dialog title={routine.name} onClose={onClose} wide><div className="focused-session">
+    {storageWarning?<p className="storage-warning" role="alert">{storageWarning} Keep this tab open and download a backup in Settings.</p>:<p className="session-save-status" role="status">{saveLabel??'Saved on this device'} · close and resume whenever you need.</p>}
+    {changed&&<aside className="routine-change-note"><strong>This workout uses your earlier routine ({routine.exercises.length} exercises).</strong><p>Your current routine has {template.exercises.length} exercises. Continue this saved workout, or finish it below before starting the updated routine. Completed sets stay in your diary.</p><details><summary>Review updated routine</summary><ol>{template.exercises.map((e,i)=><li key={i}>{e.name} · {e.sets} sets</li>)}</ol></details></aside>}
     {discard?<>
       <p className="dialog-description">Discard this workout and its {entries.length} completed sets? Your movement diary will stay unchanged.</p>
       <div className="form-actions"><button className="button secondary" onClick={()=>setDiscard(false)}>Keep workout</button><button className="button danger" onClick={()=>{if(change({...state,activeWorkout:null}))onClose();}}>Discard workout</button></div>
@@ -62,11 +63,12 @@ export default function WorkoutSession({state,change,notice,onClose,onFinished,s
       <div className="guided-layout">
         <div className="guided-exercise">
           <p className="exercise-position">Exercise {index+1} of {routine.exercises.length}</p>
+          <Field label="All exercises"><select value={index} onChange={e=>go(Number(e.target.value))}>{routine.exercises.map((e,i)=><option value={i} key={i}>{i+1}. {e.name}</option>)}</select></Field>
           <h3>{exercise.name}</h3>
           {(exercise.equipment||exercise.plannedKg!==undefined)&&<p className="workout-equipment">{exercise.equipment?EQUIPMENT_LABELS[exercise.equipment]:'Custom exercise'}{exercise.plannedKg!==undefined?` · ${exercise.plannedKg} kg planned`:''}</p>}
           <div className="rep-target"><strong>{exercise.repMin}–{exercise.repMax}</strong><span>target reps · {exercise.sets} sets</span></div>
           <p className="exercise-cue">{exercise.cue||'Move at your own pace. Use a comfortable range and load.'}</p>
-          <aside className="previous-exercise" aria-label="Previous exercise history">{previous?<><strong>Last logged day · {previous.date}</strong><p>{previous.sets.map(s=>`${s.sets} × ${s.reps} reps at ${s.kg} kg`).join(' · ')}</p><small>{previous.sessions} {previous.sessions===1?'session':'sessions'} · Same exercise and equipment. A reference, not a target.</small></>:<p>{exercise.exerciseId&&exercise.equipment?'No earlier matching entries yet. Your first sets start the story.':'Choose a library exercise in your routine to track comparable history. Your existing entries stay in the diary.'}</p>}</aside>
+          <aside className="previous-exercise" aria-label="Previous exercise history">{previous?<><strong>Last logged day · {previous.date}</strong><p>{previous.sets.map(s=>`${s.sets} × ${s.reps} reps at ${s.kg} kg`).join(' · ')}</p><small>Same exercise and equipment. A reference, not a target.</small><details><summary>View history ({allHistory.length} days)</summary>{allHistory.map(day=><p key={day.date}><time dateTime={day.date}>{day.date}</time> · {day.sets.map(s=>`${s.sets} × ${s.reps} reps · ${s.kg} kg`).join('; ')}</p>)}</details></>:<p>{exercise.exerciseId&&exercise.equipment?'No earlier entries for this exercise and equipment. Older unlinked sets can be connected in Movement → History.':'Choose equipment in your routine to compare loads. Link older entries in Movement → History; they remain in your diary.'}</p>}</aside>
           <div className="set-dots" aria-label={`${done} of ${exercise.sets} sets completed for ${exercise.name}`}>{Array.from({length:exercise.sets},(_,i)=><span key={i} className={i<done?'complete':''}>{i<done?<Check size={16}/>:i+1}</span>)}</div>
           <div className="form-grid">
             <Field label="Actual reps"><input aria-label="Actual reps" type="number" inputMode="numeric" min={1} max={1000} step={1} value={reps} onChange={e=>update({reps:e.target.value.slice(0,20)})}/></Field>
@@ -76,10 +78,6 @@ export default function WorkoutSession({state,change,notice,onClose,onFinished,s
           {done>0&&<button className="text-link undo-set" onClick={()=>{const last=entries.map(e=>e.exerciseIndex).lastIndexOf(index);update({entries:entries.filter((_,i)=>i!==last),restEndsAt:null});}}><RotateCcw size={15}/>Undo last set</button>}
           <FormError error={error}/>
         </div>
-        <aside className="pixel-cheer-squad">
-          <div className="session-pals"><SupportingArt name="mochiRoutine"/><SupportingArt name="chonkRoutine"/></div>
-          <p><strong>{done>=exercise.sets?state.profile.name:state.profile.coachName}</strong>{done>=exercise.sets?'Tiny paws, big win. Take a breather with us.':`Aim for ${exercise.repMin}–${exercise.repMax} comfortable reps. We’re right here.`}</p>
-        </aside>
       </div>
       <section className="session-rest" aria-label="Rest between sets">
         <div><Timer size={20}/><strong>{rest>0?`${Math.floor(rest/60)}:${String(rest%60).padStart(2,'0')}`:'Take your time'}</strong><span role="status">{rest>0?'Rest between sets':session.restEndsAt?'Rest timer finished. Continue when ready.':'Your pace, always.'}</span></div>
@@ -95,5 +93,5 @@ export default function WorkoutSession({state,change,notice,onClose,onFinished,s
       </form>
       <button className="text-link discard-workout" onClick={()=>setDiscard(true)}><X size={15}/>Discard this workout</button>
     </>}
-  </Dialog>;
+  </div></Dialog>;
 }

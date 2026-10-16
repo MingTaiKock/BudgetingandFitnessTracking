@@ -11,7 +11,9 @@ export function applyScenarioBudget(s:State,id:string,month:string,category:Cate
 }
 const assumptions=scenarioSchema.omit({id:true});
 export function compareScenario(input:unknown) {
-  const s=assumptions.parse(input);
+  // Saved ideas carry an id; comparison validates only their assumptions.
+  const value=input&&typeof input==='object'&&'id' in input?(({id,...rest})=>rest)(input):input;
+  const s=assumptions.parse(value);
   const weeklyGrossCents=s.costCents*s.occurrencesPerWeek;
   const weeklyNetCents=(s.costCents-s.extraCostCents)*s.occurrencesPerWeek;
   return {weeklyGrossCents,weeklyNetCents,monthlyNetCents:Math.round(weeklyNetCents*52/12),weeklyMinutes:s.extraMinutes*s.occurrencesPerWeek};

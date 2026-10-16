@@ -3,9 +3,10 @@ import { ArrowUp, ArrowDown, Plus, X, Search } from 'lucide-react';
 import { routineSchema, type Routine, type Equipment } from '../model.ts';
 import { EQUIPMENT_LABELS, searchExercises, exerciseToRoutine } from '../exercises.ts';
 import { reorderExercises } from '../routines.ts';
+import { editExercise } from '../focused.ts';
 import { Dialog, Field, FormError, type FeatureProps } from '../components.tsx';
 
-const blankExercise=():Routine['exercises'][number]=>({name:'',sets:2,repMin:8,repMax:12,cue:''});
+const blankExercise=():Routine['exercises'][number]=>({name:'',exerciseId:`custom-${crypto.randomUUID()}`,sets:2,repMin:8,repMax:12,cue:''});
 export default function RoutineEditor({state,change,notice,onClose,existing}:FeatureProps&{onClose:()=>void,existing?:Routine}) {
   const [exercises,setExercises]=useState<Routine['exercises']>(existing?.exercises??[]);
   const [error,setError]=useState('');
@@ -22,7 +23,7 @@ export default function RoutineEditor({state,change,notice,onClose,existing}:Fea
   const results=searchExercises(query,equipment);
   const total=exercises.reduce((sum,e)=>sum+e.sets,0);
   function update(i:number,patch:Partial<Routine['exercises'][number]>) {
-    setExercises(exercises.map((e,j)=>i===j?{...e,...patch,...('name' in patch||'equipment' in patch?{exerciseId:undefined}:{})}:e));
+    setExercises(exercises.map((e,j)=>i===j?editExercise(e,patch):e));
   }
   function choose(id:string) {
     const entry=exerciseToRoutine(id);

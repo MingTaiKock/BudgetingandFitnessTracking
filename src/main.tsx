@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
-import App from './App.tsx';
-import CharacterPreview from './CharacterPreview.tsx';
+import AccountHost from './features/AccountHost.tsx';
+const CharacterPreview=lazy(()=>import('./CharacterPreview.tsx'));
 import './styles.css';
 import './wellness.css';
 import './prototype.css';
 import './supporting.css';
-createRoot(document.getElementById('root')!).render(<React.StrictMode>{new URLSearchParams(window.location.search).has('characters')?<CharacterPreview/>:<App/>}</React.StrictMode>);
+import './focused.css';
+createRoot(document.getElementById('root')!).render(<React.StrictMode><Suspense fallback={<p>Opening Small Wins…</p>}>{new URLSearchParams(window.location.search).has('characters')?<CharacterPreview/>:<AccountHost/>}</Suspense></React.StrictMode>);
