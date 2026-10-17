@@ -21,6 +21,7 @@ import FutureView from './features/FutureView.tsx';
 import ExerciseProgress from './features/ExerciseProgress.tsx';
 import HabitatHome from './features/HabitatHome.tsx';
 import DailyCheckin from './features/DailyCheckin.tsx';
+import { Sticker, type StickerName } from './Sticker.tsx';
 import { demoState } from './demo.ts';
 type ExternalJourney={state:State,change:(next:State)=>boolean,status:string,warning:string|null,accountPanel:ReactNode};
 const NAV=[{id:'habitat',label:'Home',icon:Home},{id:'budget',label:'Money',icon:Wallet},{id:'fitness',label:'Movement',icon:Dumbbell},{id:'insights',label:'Insights',icon:BarChart3}] as const;
@@ -41,15 +42,15 @@ export default function App({external,demoOnly=false,accountEntry,onRequestSignI
   const [recapId,setRecapId]=useState<string|null>(null);
   const recap=state.workouts.find(w=>w.id===recapId);
   const [setupOpen,setSetupOpen]=useState(Boolean(initial.isNew));
-  const [view,setPage]=useState<View>('habitat'),[today,setToday]=useState(dateKey()),[toast,setToast]=useState(''),[entry,setEntry]=useState<'pick'|'transaction'|'workout'|'connection'|null>(null);
+  const [view,setPage]=useState<View>('habitat'),[today,setToday]=useState(dateKey()),[toast,setToast]=useState<{text:string,sticker?:StickerName}|null>(null),[entry,setEntry]=useState<'pick'|'transaction'|'workout'|'connection'|null>(null);
   function setView(next:View){setPage(next==='today'?'habitat':next==='review'?'insights':next==='future'?'planner':next);window.scrollTo(0,0);}
   const activeView=['journey','streaks'].includes(view)?'insights':view==='planner'?'budget':view==='connection'?'habitat':view;
   const [resetOpen,setResetOpen]=useState(false);
   useEffect(()=>{const timer=setInterval(()=>setToday(dateKey()),30000);return ()=>clearInterval(timer);},[]);
-  useEffect(()=>{if(!toast)return;const timer=setTimeout(()=>setToast(''),4500);return ()=>clearTimeout(timer);},[toast]);
+  useEffect(()=>{if(!toast)return;const timer=setTimeout(()=>setToast(null),4500);return ()=>clearTimeout(timer);},[toast]);
   function change(next:State,replace=false) {
     const result=stateSchema.safeParse(next);
-    if(!result.success){setToast('Please check the entry. Use valid dates, amounts, and names.');return false;}
+    if(!result.success){setToast({text:'Please check the entry. Use valid dates, amounts, and names.'});return false;}
     if(external)return external.change(result.data);
     if(demoOnly){if(!result.data.demo){onRequestSignIn?.();return false;}setState(result.data);return true;}
     if(blocked&&!replace){setState(result.data);return false;}
@@ -58,7 +59,7 @@ export default function App({external,demoOnly=false,accountEntry,onRequestSignI
     else if(!replace)setState(result.data);
     setWarning(error);return !error;
   }
-  const props={state,change,notice:(message:string)=>setToast(external?`${message} Check the online save status for confirmation.`:message),go:setView};
+  const props={state,change,notice:(message:string,sticker?:StickerName)=>setToast({text:external?`${message} Check the online save status for confirmation.`:message,sticker}),go:setView};
   const saveLabel=external?.status??(demoOnly?'Demo · changes reset when closed':warning?'Not saved · download a backup':'Saved on this device');
   const openSetup=()=>demoOnly?onRequestSignIn?.():setSetupOpen(true);
   function beginRoutine(routine:Routine,index=0) {
@@ -73,7 +74,7 @@ export default function App({external,demoOnly=false,accountEntry,onRequestSignI
     try{error=saveState(localStorage,parsed.data,savedRaw.current??null);}catch{error='Browser storage is unavailable. Your demo is unchanged. Enable storage and try again.';}
     if(error)return `${error} Your current journey is unchanged; your setup choices are still here.`;
     savedRaw.current=JSON.stringify(parsed.data);setState(parsed.data);setWarning(null);setBlocked(false);setSetupOpen(false);setView('today');
-    setToast('Your own little journey is ready. Welcome home.');return null;
+    setToast({text:'Your own little journey is ready. Welcome home.',sticker:'cream-celebrating'});return null;
   }
   if(setupOpen&&state.demo)return <Onboarding state={state} onFinish={finishSetup} onExplore={()=>{change(state);setSetupOpen(false);}}/>;
   return <div className={`app-shell ${state.preferences.gentleMotion?'':'motion-off'}`}>
@@ -83,7 +84,7 @@ export default function App({external,demoOnly=false,accountEntry,onRequestSignI
       <button className="nav-item settings-nav" onClick={()=>setView('settings')}><SettingsIcon size={22}/>Settings</button>
       <button className="privacy-link" onClick={()=>setView('settings')}>{saveLabel}<ArrowUpRight size={13}/></button>
     </aside>
-    <div className="main-shell"><header className="topbar"><span className="greeting">Good {new Date().getHours()<12?'morning':new Date().getHours()<18?'afternoon':'evening'}, {state.profile.name}</span><div className="topbar-actions"><span className="header-date">{new Date(`${today}T12:00:00`).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</span><button className="notification-button" onClick={()=>{setView('review');setToast('Your latest recorded week is ready to review.');}} aria-label="Open weekly update"><Bell size={23}/></button></div></header>
+    <div className="main-shell"><header className="topbar"><span className="greeting">Good {new Date().getHours()<12?'morning':new Date().getHours()<18?'afternoon':'evening'}, {state.profile.name}</span><div className="topbar-actions"><span className="header-date">{new Date(`${today}T12:00:00`).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</span><button className="notification-button" onClick={()=>{setView('review');setToast({text:'Your latest recorded week is ready to review.'});}} aria-label="Open weekly update"><Bell size={23}/></button></div></header>
     <main>
       {(external?.warning||warning)&&<div className="storage-warning" role="alert">{external?.warning||warning} <button onClick={()=>setView('settings')}>Open Settings</button>{!external&&<button onClick={()=>window.location.reload()}>Reload saved journey</button>}</div>}
       {state.demo&&<div className="demo-banner"><span>You’re exploring a demo garden. These are sample entries.</span><button onClick={openSetup}>Start my journey <ArrowUpRight size={14}/></button></div>}
@@ -100,7 +101,7 @@ export default function App({external,demoOnly=false,accountEntry,onRequestSignI
     {entry==='connection'&&state.preferences.connectionEnabled&&<ConnectionEditor {...props} onClose={()=>setEntry(null)}/>}
     {resetOpen&&<ResetChooser {...props} onClose={()=>setResetOpen(false)} onLogConnection={()=>{setResetOpen(false);setEntry('connection');}}/>}
     {workoutOpen&&state.activeWorkout&&<WorkoutSession {...props} saveLabel={saveLabel} onFinished={id=>{setWorkoutOpen(false);setRecapId(id);}} storageWarning={external?.warning??warning} onClose={()=>setWorkoutOpen(false)}/>}
-    {recap&&<WorkoutRecap workout={recap} storageWarning={external?.warning??warning} onClose={()=>setRecapId(null)}/>}
-    {toast&&<div className="toast" role="status">✿ {toast}<button aria-label="Dismiss notification" onClick={()=>setToast('')}>×</button></div>}
+    {recap&&<WorkoutRecap workout={recap} still={!state.preferences.gentleMotion} storageWarning={external?.warning??warning} onClose={()=>setRecapId(null)}/>}
+    {toast&&<div className={`toast ${toast.sticker?'toast-with-sticker':''}`} role="status">{toast.sticker?<Sticker name={toast.sticker} size={64} still={!state.preferences.gentleMotion}/>:'✿ '}{toast.text}<button aria-label="Dismiss notification" onClick={()=>setToast(null)}>×</button></div>}
   </div>;
 }

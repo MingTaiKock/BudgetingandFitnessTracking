@@ -37,7 +37,7 @@ export default function RoutineEditor({state,change,notice,onClose,existing}:Fea
       const f=new FormData(e.currentTarget);
       const routine=routineSchema.parse({id:existing?.id??crypto.randomUUID(),name:f.get('name'),description:f.get('description'),exercises});
       if(!change({...state,routines:existing?state.routines.map(r=>r.id===existing.id?routine:r):[...state.routines,routine]}))return;
-      notice('Your little workout plan is ready.');onClose();
+      notice('Your little workout plan is ready.','cream-thumbs-up');onClose();
     }catch {setError('Add 1–10 named exercises, with 1–10 sets each and a rep range from 1–100 (minimum ≤ maximum). Keep the total within 30 sets and loads within 0–1000 kg.');}
   }
   return <Dialog title={existing?'Edit workout routine':'Plan a little workout'} onClose={onClose} wide><form onSubmit={save}>

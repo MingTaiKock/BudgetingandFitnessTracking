@@ -2,8 +2,9 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ChevronLeft, ChevronRight, X, Trash2, ArrowUpRight } from 'lucide-react';
 import { monthLabel, shiftMonth } from './dates.ts';
 import type { State } from './model.ts';
+import type { StickerName } from './Sticker.tsx';
 export type View='today'|'budget'|'fitness'|'journey'|'settings'|'insights'|'connection'|'habitat'|'future'|'streaks'|'planner'|'review';
-export type FeatureProps={state:State,change:(next:State)=>boolean,notice:(text:string)=>void};
+export type FeatureProps={state:State,change:(next:State)=>boolean,notice:(text:string,sticker?:StickerName)=>void};
 export function Progress({value,max,color,label='Progress'}: {value:number,max:number,color?:string,label?:string}) {
   const pct=max>0?Math.min(100,Math.max(0,value/max*100)):value>0?100:0;
   return <div className="progress" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-label={label} aria-valuetext={`${value} of ${max}`}><span style={{width:`${pct}%`,background:color}}/></div>;

@@ -17,7 +17,7 @@ export default function BudgetPlanner({state,change,notice,month,onClose}:Featur
     try {
       const budgets=CATEGORIES.map(c=>({month,category:c.id,limitCents:/^0(\.0{1,2})?$/.test(amounts[c.id].trim())?0:parseMoney(amounts[c.id])}));
       if(!change({...state,budgets:[...state.budgets.filter(b=>b.month!==month),...budgets]}))return;
-      notice('Your spending plan is ready.');onClose();
+      notice('Your spending plan is ready.','cream-thumbs-up');onClose();
     } catch {setError('Use amounts from 0 to 1,000,000 with up to 2 decimal places.');}
   }
   return <Dialog title={`Plan ${monthLabel(month)}`} onClose={onClose}>
