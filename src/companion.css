@@ -1,0 +1,15 @@
+/* Interactive hamster companion (src/Companion.tsx). Transforms are driven by
+   CSS variables from a spring in JS, so there are no transitions to fight it. */
+.companion{--tilt-x:0deg;--tilt-y:0deg;--shift-x:0px;--shift-y:0px;--lift:0;position:relative;display:inline-block;flex:none;max-width:100%;perspective:640px;line-height:0;animation:companion-arrive .7s cubic-bezier(.22,1,.36,1) both}
+.companion img{position:relative;z-index:1;display:block;width:100%;height:auto;user-select:none;pointer-events:none;transform-origin:50% 85%;transform:translate3d(var(--shift-x),calc(var(--shift-y) - var(--lift)*4px),0) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) scale(calc(1 + var(--lift)*.03));will-change:transform}
+/* Contact shadow stays on the floor and drifts the other way, which sells depth. */
+.companion-shadow{position:absolute;left:18%;right:18%;bottom:-2px;height:12%;border-radius:50%;background:radial-gradient(closest-side,#3a2d4a2e,#3a2d4a00);transform:translateX(calc(var(--shift-x)*-.6)) scale(calc(1 - var(--lift)*.08));opacity:calc(1 - var(--lift)*.25)}
+@keyframes companion-arrive{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+.companion-still,.motion-off .companion{animation:none}
+@media (prefers-reduced-motion:reduce){.companion{animation:none}.companion img,.companion-shadow{transform:none}}
+
+/* Placements */
+.empty .companion{margin:0 auto 10px}
+.companion-aside{float:right;margin:-6px 0 6px 14px}
+.companion-inline{display:block;margin:4px auto 12px}
+@media (max-width:650px){.companion-aside{float:none;display:block;margin:0 auto 10px}}

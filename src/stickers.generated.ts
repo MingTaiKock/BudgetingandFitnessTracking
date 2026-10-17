@@ -11,3 +11,19 @@ export const STICKERS={
   'golden-savings':{width:200,height:155,label:'golden savings hamster'},
 } as const;
 export type StickerName=keyof typeof STICKERS;
+
+// Tightly cropped stills for the interactive Companion (public/stickers/companion-<name>.webp).
+export const COMPANIONS={
+  'cream-hopeful':{width:280,height:220,label:'cream hopeful hamster'},
+  'golden-resting':{width:280,height:150,label:'golden resting hamster'},
+  'pair-cuddle':{width:280,height:213,label:'pair cuddle hamster'},
+  'cream-dumbbell-curls':{width:280,height:240,label:'cream dumbbell curls hamster'},
+  'golden-barbell-press':{width:280,height:219,label:'golden barbell press hamster'},
+  'pair-flexing':{width:280,height:169,label:'pair flexing hamster'},
+  'cream-confused':{width:280,height:238,label:'cream confused hamster'},
+  'pair-cheek-kiss':{width:280,height:232,label:'pair cheek kiss hamster'},
+  'golden-wave':{width:280,height:255,label:'golden wave hamster'},
+  'cream-shy-love':{width:280,height:246,label:'cream shy love hamster'},
+  'golden-heart-hug':{width:280,height:253,label:'golden heart hug hamster'},
+} as const;
+export type CompanionName=keyof typeof COMPANIONS;

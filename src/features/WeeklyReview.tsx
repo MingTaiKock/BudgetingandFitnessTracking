@@ -19,7 +19,7 @@ export default function WeeklyReview({state}:Pick<FeatureProps,'state'>) {
    {domain==='money'&&<Field label="Show money records"><select value={category} onChange={e=>setCategory(e.target.value)}><option value="all">All money records</option><option value="income">Income</option><option value="savings">Savings contributions</option>{CATEGORIES.map(c=><option key={c.id} value={c.id}>{c.name} expenses</option>)}</select></Field>}
    <p className="settings-note">{rows.length} records · newest dates first</p>
    {dates.map(date=><section className="evidence-day" key={date}><h3><time dateTime={date}>{shortDate(date)} {date.slice(0,4)}</time></h3>{rows.filter(row=>row.date===date).map(row=><div className="record-row" key={row.id}><div className="record-text"><strong>{row.label}</strong><span>{row.kind==='savings'?'Savings contribution':row.kind==='expense'?`Expense · ${CATEGORIES.find(c=>c.id===row.category)?.name}`:row.kind==='income'?'Income':row.kind==='rest'?'Rest':'Movement'}</span></div><strong>{row.amountCents!==undefined?money(row.amountCents,state.profile.currency):row.minutes!==undefined?`${row.minutes} min`:''}</strong></div>)}</section>)}
-   {!rows.length&&<Empty title="No matching records this week">Try another week or filter, or add an entry in Money or Movement.</Empty>}
+   {!rows.length&&<Empty title="No matching records this week" companion="cream-confused">Try another week or filter, or add an entry in Money or Movement.</Empty>}
    <p className="settings-note">Days without entries may be incomplete. They are not failed days.</p>
   </section>
  </section>;

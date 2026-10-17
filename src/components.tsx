@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, X, Trash2, ArrowUpRight } from 'lucide-react
 import { monthLabel, shiftMonth } from './dates.ts';
 import type { State } from './model.ts';
 import type { StickerName } from './Sticker.tsx';
+import { Companion, type CompanionName } from './Companion.tsx';
 export type View='today'|'budget'|'fitness'|'journey'|'settings'|'insights'|'connection'|'habitat'|'future'|'streaks'|'planner'|'review';
 export type FeatureProps={state:State,change:(next:State)=>boolean,notice:(text:string,sticker?:StickerName)=>void};
 export function Progress({value,max,color,label='Progress'}: {value:number,max:number,color?:string,label?:string}) {
@@ -34,5 +35,5 @@ export function ConfirmButton({children,title,description,onConfirm,className='b
 export function DeleteButton({label,onDelete,description='This entry will be removed and its totals and rewards recalculated. Download a backup in Settings if you want to keep a copy.'}:{label:string,onDelete:()=>void,description?:string}) {return <ConfirmButton className="icon-button delete-button" title={`Delete ${label}?`} description={description} onConfirm={onDelete}><Trash2 size={16}/><span className="sr-only">Delete {label}</span></ConfirmButton>;}
 export function Field({label,children,hint}:{label:string,children:ReactNode,hint?:string}) {return <label className="field"><span>{label}</span>{children}{hint&&<small>{hint}</small>}</label>;}
 export function FormError({error}:{error:string}) {return error?<p className="form-error" role="alert">{error}</p>:null;}
-export function Empty({title,children}:{title:string,children?:ReactNode}) {return <div className="empty"><span className="empty-sprout">🌱</span><h3>{title}</h3>{children}</div>;}
+export function Empty({title,children,companion}:{title:string,children?:ReactNode,companion?:CompanionName}) {return <div className="empty">{companion?<Companion name={companion} size={116}/>:<span className="empty-sprout">🌱</span>}<h3>{title}</h3>{children}</div>;}
 export function TextLink({children,onClick}:{children:ReactNode,onClick:()=>void}) {return <button className="text-link" onClick={onClick}>{children}<ArrowUpRight size={15}/></button>;}

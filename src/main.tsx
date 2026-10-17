@@ -8,4 +8,5 @@ import './prototype.css';
 import './supporting.css';
 import './focused.css';
 import './stickers.css';
+import './companion.css';
 createRoot(document.getElementById('root')!).render(<React.StrictMode><Suspense fallback={<p>Opening Small Wins…</p>}>{new URLSearchParams(window.location.search).has('characters')?<CharacterPreview/>:<AccountHost/>}</Suspense></React.StrictMode>);
