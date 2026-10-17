@@ -47,7 +47,7 @@ export default function App({external,demoOnly=false,accountEntry,onRequestSignI
   const activeView=['journey','streaks'].includes(view)?'insights':view==='planner'?'budget':view==='connection'?'habitat':view;
   const [resetOpen,setResetOpen]=useState(false);
   useEffect(()=>{const timer=setInterval(()=>setToday(dateKey()),30000);return ()=>clearInterval(timer);},[]);
-  useEffect(()=>{if(!toast)return;const timer=setTimeout(()=>setToast(null),4500);return ()=>clearTimeout(timer);},[toast]);
+  useEffect(()=>{if(!toast)return;const timer=setTimeout(()=>setToast(null),toast.sticker?8000:4500);return ()=>clearTimeout(timer);},[toast]);
   function change(next:State,replace=false) {
     const result=stateSchema.safeParse(next);
     if(!result.success){setToast({text:'Please check the entry. Use valid dates, amounts, and names.'});return false;}
@@ -59,7 +59,7 @@ export default function App({external,demoOnly=false,accountEntry,onRequestSignI
     else if(!replace)setState(result.data);
     setWarning(error);return !error;
   }
-  const props={state,change,notice:(message:string,sticker?:StickerName)=>setToast({text:external?`${message} Check the online save status for confirmation.`:message,sticker}),go:setView};
+  const props={state,change,notice:(message:string,sticker?:StickerName)=>setToast({text:external&&!sticker?`${message} Check the online save status for confirmation.`:message,sticker}),go:setView};
   const saveLabel=external?.status??(demoOnly?'Demo · changes reset when closed':warning?'Not saved · download a backup':'Saved on this device');
   const openSetup=()=>demoOnly?onRequestSignIn?.():setSetupOpen(true);
   function beginRoutine(routine:Routine,index=0) {
@@ -101,7 +101,7 @@ export default function App({external,demoOnly=false,accountEntry,onRequestSignI
     {entry==='connection'&&state.preferences.connectionEnabled&&<ConnectionEditor {...props} onClose={()=>setEntry(null)}/>}
     {resetOpen&&<ResetChooser {...props} onClose={()=>setResetOpen(false)} onLogConnection={()=>{setResetOpen(false);setEntry('connection');}}/>}
     {workoutOpen&&state.activeWorkout&&<WorkoutSession {...props} saveLabel={saveLabel} onFinished={id=>{setWorkoutOpen(false);setRecapId(id);}} storageWarning={external?.warning??warning} onClose={()=>setWorkoutOpen(false)}/>}
-    {recap&&<WorkoutRecap workout={recap} still={!state.preferences.gentleMotion} storageWarning={external?.warning??warning} onClose={()=>setRecapId(null)}/>}
-    {toast&&<div className={`toast ${toast.sticker?'toast-with-sticker':''}`} role="status">{toast.sticker?<Sticker name={toast.sticker} size={64} still={!state.preferences.gentleMotion}/>:'✿ '}{toast.text}<button aria-label="Dismiss notification" onClick={()=>setToast(null)}>×</button></div>}
+    {recap&&<WorkoutRecap workout={recap} saveLabel={saveLabel} still={!state.preferences.gentleMotion} storageWarning={external?.warning??warning} onClose={()=>setRecapId(null)}/>}
+    {toast&&<div className={`toast ${toast.sticker?'toast-with-sticker':''}`} role="status" aria-atomic="true">{toast.sticker&&!(external?.warning??warning)?<Sticker name={toast.sticker} size={76} still={!state.preferences.gentleMotion}/>:null}<div className="toast-copy"><strong>{toast.sticker&&(external?.warning??warning)?'Your entry needs attention':toast.text}</strong>{toast.sticker&&<small>{external?.warning??warning??saveLabel}</small>}</div><button aria-label="Dismiss notification" onClick={()=>setToast(null)}>×</button></div>}
   </div>;
 }
