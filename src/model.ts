@@ -54,7 +54,8 @@ export const scheduleEntrySchema=z.discriminatedUnion('kind',[
   z.object({day:z.number().int().min(0).max(6),kind:z.literal('rest')}).strict(),
 ]);
 export const connectionSchema=z.object({id,date:loggedDate,minutes:z.number().int().min(1).max(1440),activity:z.enum(['conversation','shared-meal','walk','shared-activity','other']),note:text,origin:z.literal('manual')}).strict();
-export const preferencesSchema=z.object({connectionEnabled:z.boolean(),gentleMotion:z.boolean()}).strict();
+export const navigationSchema=z.object({budget:z.boolean(),fitness:z.boolean(),insights:z.boolean(),connection:z.boolean()}).strict();
+export const preferencesSchema=z.object({connectionEnabled:z.boolean(),gentleMotion:z.boolean(),navigation:navigationSchema.optional()}).strict();
 export const resetSchema=z.object({id,kind:z.enum(['pause','connection']),startedAt:z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),endsAt:z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER)}).strict().refine(r=>r.endsAt===r.startedAt+90_000,'Reset duration must be 90 seconds');
 export const scenarioSchema=z.object({id,label:z.string().trim().min(1).max(80),costCents:z.number().int().min(0).max(100_000_000),extraCostCents:z.number().int().min(0).max(100_000_000),occurrencesPerWeek:z.number().int().min(0).max(100),extraMinutes:z.number().int().min(-1440).max(1440)}).strict();
 export const intentionSchema=z.object({id,label:z.string().trim().min(1).max(80),domain:z.enum(['money','movement','connection']),startDate:loggedDate,revisions:z.array(z.object({effectiveDate:date,target:z.number().int().min(1).max(7)}).strict()).min(1).max(100),completions:z.array(loggedDate).max(10000),scenarioId:id.optional(),archived:z.boolean().default(false)}).strict().superRefine((v,ctx)=>{
