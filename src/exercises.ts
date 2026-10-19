@@ -3,6 +3,14 @@ import type { Equipment, Routine } from './model.ts';
 export const EQUIPMENT_LABELS:Record<Equipment,string>={bodyweight:'Bodyweight',dumbbell:'Dumbbells',kettlebell:'Kettlebell',barbell:'Barbell',cable:'Cable station',machine:'Weight machine',band:'Resistance band',smith:'Smith machine','trap-bar':'Trap bar',suspension:'Suspension straps'};
 type Exercise={id:string,name:string,equipment:Equipment,cue:string};
 export const EXERCISES:Exercise[]=[
+  {id:'dumbbell-reverse-fly',name:'Dumbbell reverse fly',equipment:'dumbbell',cue:'Use light weights, a supported or steady hinged position, and a small controlled arc without shrugging.'},
+  {id:'dumbbell-romanian-deadlift',name:'Dumbbell Romanian deadlift',equipment:'dumbbell',cue:'Hinge at your hips with soft knees. Keep weights close and stop within a controlled range.'},
+  {id:'dumbbell-bench-press',name:'Dumbbell bench press',equipment:'dumbbell',cue:'Use a stable bench, keep feet planted and lower with control.'},
+  {id:'dumbbell-split-squat',name:'Dumbbell split squat',equipment:'dumbbell',cue:'Use a comfortable staggered stance and stable support. Reps are per side.'},
+  {id:'dumbbell-lateral-raise',name:'Dumbbell lateral raise',equipment:'dumbbell',cue:'Choose light weights and raise without shrugging or swinging.'},
+  {id:'dumbbell-curl',name:'Dumbbell curl',equipment:'dumbbell',cue:'Keep upper arms steady and avoid swinging.'},
+  {id:'dumbbell-triceps-extension',name:'Dumbbell triceps extension',equipment:'dumbbell',cue:'Use a comfortable shoulder position and control the weight through a pain-free range.'},
+  {id:'dumbbell-glute-bridge',name:'Dumbbell glute bridge',equipment:'dumbbell',cue:'Rest the weight securely across your hips. Lift with control without arching your back.'},
   {id:'chair-squat',name:'Chair squat',equipment:'bodyweight',cue:'Use a sturdy chair and a comfortable range.'},
   {id:'wall-push-up',name:'Wall push-up',equipment:'bodyweight',cue:'Use a stable wall and keep each rep controlled.'},
   {id:'standing-calf-raise',name:'Standing calf raise',equipment:'bodyweight',cue:'Use stable support if needed. Rise and lower slowly.'},

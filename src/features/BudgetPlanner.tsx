@@ -4,6 +4,8 @@ import { CATEGORIES } from '../model.ts';
 import { parseMoney } from '../domain.ts';
 import { monthLabel, shiftMonth } from '../dates.ts';
 import { Dialog, Field, FormError, type FeatureProps } from '../components.tsx';
+import { spendingBaseline } from '../guidance.ts';
+import { money } from '../domain.ts';
 
 export default function BudgetPlanner({state,change,notice,month,onClose}:FeatureProps & {month:string,onClose:()=>void}) {
   const amountsFor=(source:string)=>Object.fromEntries(CATEGORIES.map(c=>[c.id,((state.budgets.find(b=>b.month===source&&b.category===c.id)?.limitCents??0)/100).toFixed(2)]));
@@ -12,6 +14,8 @@ export default function BudgetPlanner({state,change,notice,month,onClose}:Featur
   const [copied,setCopied]=useState(false);
   const previous=shiftMonth(month,-1);
   const canCopy=state.budgets.some(b=>b.month===previous);
+  const baseline=spendingBaseline(state,month);
+  const [suggested,setSuggested]=useState(false);
   function save(e:FormEvent<HTMLFormElement>) {
     e.preventDefault();
     try {
@@ -22,6 +26,7 @@ export default function BudgetPlanner({state,change,notice,month,onClose}:Featur
   }
   return <Dialog title={`Plan ${monthLabel(month)}`} onClose={onClose}>
     <p className="dialog-description">Choose your category limits. These are your plan, not your bank balance.</p>
+    <div className="guidance-evidence"><strong>Start from recorded spending</strong>{baseline.count?<><p>{baseline.count} expenses across {baseline.days} days in {monthLabel(baseline.sourceMonth)} · {money(baseline.total,state.profile.currency)} recorded. This may be incomplete. Add missing bills and irregular costs, then check what you can afford.</p><button className="button secondary" onClick={()=>{setAmounts(Object.fromEntries(CATEGORIES.map(c=>[c.id,(Math.min(100_000_000,baseline.amounts[c.id])/100).toFixed(2)])));setSuggested(true);setCopied(false);setError('');}}>Preview last month’s spending</button>{suggested&&<p role="status">Draft filled. Categories without records start at zero; amounts above 1,000,000 are capped. Review before saving.</p>}</>:<p>No expenses recorded for {monthLabel(baseline.sourceMonth)}. Choose your own limits; no spending estimate has been invented.</p>}</div>
     {canCopy&&<div className="copy-budget"><button className="button secondary" onClick={()=>{setAmounts(amountsFor(previous));setCopied(true);setError('');}}><Copy size={17}/>Use last month’s limits</button><p role="status">{copied?'Copied into this preview. Review the amounts, then save.':`Start from ${monthLabel(previous)} and adjust what you need.`}</p></div>}
     <form onSubmit={save}><div className="form-grid">{CATEGORIES.map(c=><Field key={c.id} label={`${c.name} (${state.profile.currency})`}><input name={c.id} inputMode="decimal" required value={amounts[c.id]} onChange={e=>setAmounts({...amounts,[c.id]:e.target.value})}/></Field>)}</div><FormError error={error}/><div className="form-actions"><button className="button secondary" type="button" onClick={onClose}>Cancel</button><button className="button primary" type="submit">Save monthly plan</button></div></form>
   </Dialog>;

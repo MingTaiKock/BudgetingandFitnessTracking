@@ -6,11 +6,13 @@ import { SectionTitle, Empty, DeleteButton, type FeatureProps } from '../compone
 import { removeRoutine } from '../routines.ts';
 import { EQUIPMENT_LABELS } from '../exercises.ts';
 import RoutineEditor from './RoutineEditor.tsx';
+import WorkoutPresetPicker from './WorkoutPresetPicker.tsx';
 export type RoutineActions={onStartRoutine:(routine:Routine,index?:number)=>void,onResumeWorkout:()=>void};
 export default function Routines({onStartRoutine,onResumeWorkout,...props}:FeatureProps & RoutineActions) {
   const {state,change}=props;
   const [editor,setEditor]=useState<Routine|null|undefined>(undefined);
   return <>
+    <WorkoutPresetPicker {...props}/>
     {state.activeWorkout&&<section className="resume-workout"><div><h2>Your workout is waiting</h2><p>{state.activeWorkout.routine.name} · {state.activeWorkout.entries.length} sets recorded</p></div><button className="button primary" onClick={onResumeWorkout}><Play size={17}/>Resume workout</button></section>}
     <SectionTitle title="Your little workout plans" subtitle="A plan to follow, with Mochi and Chonk by your side." action={<button className="button secondary compact" onClick={()=>setEditor(null)}><Plus size={15}/>New routine</button>}/>
     {state.routines.length===0?<Empty title="Plan a little movement" companion="golden-barbell-press"><p>Add exercises and rep ranges, then let Mochi and Chonk cheer you on.</p></Empty>:<div className="routine-grid">{state.routines.map((routine,i)=><section className="routine-card" key={routine.id}>

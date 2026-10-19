@@ -1,0 +1,14 @@
+async(page)=>{
+ const check=(ok,m)=>{if(!ok)throw Error(m)};
+ await page.goto('http://127.0.0.1:5202/');await page.evaluate(async()=>{const {freshState}=await import('/src/demo.ts');localStorage.setItem('little-wins:journey:v2',JSON.stringify(freshState()));});await page.reload();await page.getByRole('button',{name:'Continue on this device only'}).click();await page.setViewportSize({width:1440,height:1000});
+ const nav=page.getByRole('navigation',{name:'Main navigation',exact:true});await page.locator('.weekly-wins summary').click();check((await page.locator('.weekly-wins').innerText()).includes('Your next little check-in'),'Empty rewards wrong');
+ await page.setViewportSize({width:390,height:844});await page.locator('.weekly-wins summary').scrollIntoViewIfNeeded();await page.screenshot({path:'output/guidance-rewards-mobile.png'});await page.setViewportSize({width:1440,height:1000});
+ await nav.getByRole('button',{name:'Movement',exact:true}).click();await page.getByText('Browse preset workout plans',{exact:true}).click();
+ await page.evaluate(()=>{window.originalSet=Storage.prototype.setItem;Storage.prototype.setItem=()=>{throw Error('QA storage unavailable')};});
+ await page.getByRole('button',{name:'Add 3 routines to my library',exact:true}).click();await page.getByRole('button',{name:'Retry saving routines',exact:true}).waitFor();
+ await page.evaluate(()=>{Storage.prototype.setItem=window.originalSet;});await page.getByRole('button',{name:'Retry saving routines',exact:true}).click();await page.getByRole('button',{name:'Already in your library',exact:true}).waitFor();
+ check(await page.evaluate(()=>JSON.parse(localStorage.getItem('little-wins:journey:v2')).routines.length)===5,'Retry lost/duplicated routines');
+ await page.setViewportSize({width:320,height:844});await page.locator('.preset-picker summary').first().scrollIntoViewIfNeeded();await page.screenshot({path:'output/guidance-picker-mobile.png'});
+ await page.evaluate(async()=>{const {freshState}=await import('/src/demo.ts');const {presetRoutines}=await import('/src/workoutPresets.ts');const s=freshState();s.routines=Array.from({length:48},(_,i)=>({...presetRoutines('full','gym')[0],id:'custom-'+i}));localStorage.setItem('little-wins:journey:v2',JSON.stringify(s));});await page.reload();await page.getByRole('button',{name:'Continue on this device only'}).click();await page.setViewportSize({width:1440,height:1000});await nav.getByRole('button',{name:'Movement',exact:true}).click();await page.getByText('Browse preset workout plans',{exact:true}).click();await page.getByLabel('Workout split',{exact:true}).selectOption('upper-lower');check(await page.getByRole('button',{name:'Add 4 routines to my library',exact:true}).isDisabled(),'Capacity guard missing');check((await page.locator('.preset-picker').innerText()).includes('2 remain'),'Capacity explanation missing');
+ return {emptyRewards:true,failedSaveRetry:true,noDuplicates:true,capacityGuard:true};
+}

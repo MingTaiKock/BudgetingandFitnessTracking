@@ -21,6 +21,7 @@ import FutureView from './features/FutureView.tsx';
 import ExerciseProgress from './features/ExerciseProgress.tsx';
 import HabitatHome from './features/HabitatHome.tsx';
 import DailyCheckin from './features/DailyCheckin.tsx';
+import WeeklyWins from './features/WeeklyWins.tsx';
 import { Sticker, type StickerName } from './Sticker.tsx';
 import { demoState } from './demo.ts';
 import NavigationSettings, {NAVIGATION_ICONS} from './features/NavigationSettings.tsx';
@@ -99,7 +100,7 @@ export default function App({external,demoOnly=false,accountEntry,onRequestSignI
       <div className="navigation-settings-container" hidden={view!=='settings'}><NavigationSettings key={navigationEpoch} value={confirmedNavigation} onSave={navigation=>change({...state,preferences:{...state.preferences,navigation}})} saveLabel={saveLabel} warning={external?.warning??warning} pending={external?.status==='Saving online…'||external?.status==='Loading online records'} conflict={external?.status==='Newer version on another device'} onRetry={external?.retry} cloud={Boolean(external)} demo={demoOnly}/></div>
       {view==='budget'&&<Budget {...props} onPlan={()=>setView('planner')}/>}{view==='fitness'&&<Fitness {...props} onRecap={setRecapId} onStartRoutine={beginRoutine} onResumeWorkout={()=>setWorkoutOpen(true)}/>}{view==='journey'&&<IdentityJourney {...props}/>}{view==='settings'&&<Settings {...props} cloud={Boolean(external)} accountPanel={external?.accountPanel??accountEntry} onSetup={openSetup} replace={s=>change(s,true)} raw={initial&&'raw' in initial?initial.raw:undefined}/>}
       {view==='habitat'&&<HabitatHome state={state} go={setView} resume={()=>setWorkoutOpen(true)}/>}{view==='streaks'&&<StreakPower state={state} go={setView}/>}{view==='planner'&&<ScenarioPlanner {...props}/>}{view==='insights'&&<><WeeklyReview {...props}/><details className="secondary-tools"><summary>Progress & little wins</summary><div className="form-actions"><button className="button secondary" onClick={()=>setView('journey')}>My intentions</button><button className="button secondary" onClick={()=>setView('streaks')}>Recorded streaks</button></div></details></>}{view==='connection'&&<ConnectionSpace {...props} reset={()=>setResetOpen(true)}/>}
-      {view==='habitat'&&<DailyCheckin {...props}/>}
+      {view==='habitat'&&<><WeeklyWins state={state} today={today} saveLabel={external?.warning??warning??saveLabel}/><DailyCheckin {...props}/></>}
       <footer className="app-footer"><span>Your little wins, together.</span><span role="status">{saveLabel}</span></footer>
     </main></div>
     <nav className="mobile-navigation" aria-label="Mobile navigation">{NAV.map(({id,label,icon:Icon})=><button key={id} aria-current={activeView===id?'page':undefined} onClick={()=>setView(id)}><Icon size={23}/><span>{label}</span></button>)}</nav>
