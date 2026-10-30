@@ -1,4 +1,5 @@
 import {useState} from 'react';
+import ExerciseIllustration from '../ExerciseIllustration.tsx';
 import type {FeatureProps} from '../components.tsx';
 import {Field} from '../components.tsx';
 import {SPLITS,presetRoutines,installPreset,type Split,type TrainingPlace} from '../workoutPresets.ts';
@@ -29,7 +30,7 @@ export default function WorkoutPresetPicker({state,change,notice}:FeatureProps){
    {place==='home'&&<p>Home sessions use dumbbells, a stable bench and bodyweight. Rows and reverse flies cover back work; this version has no vertical-pull exercise.</p>}
    {routines.map(r=><details className="preset-session" key={r.id}>
     <summary>{r.name} · {r.exercises.length} exercises</summary><p>{r.description}</p>
-    <ol>{r.exercises.map(e=><li key={e.exerciseId}><strong>{e.name} · {e.sets} × {e.repMin}–{e.repMax}</strong><small>{e.cue}</small></li>)}</ol>
+    <ol>{r.exercises.map(e=><li key={e.exerciseId}><div className="exercise-with-art"><ExerciseIllustration exerciseId={e.exerciseId} equipment={e.equipment} name={e.name}/><div><strong>{e.name} · {e.sets} × {e.repMin}–{e.repMax}</strong><small>{e.cue}</small></div></div></li>)}</ol>
    </details>)}
    <p>Keep familiar exercises for several weeks so your history stays comparable. When all sets reach the upper rep range with controlled form and effort to spare, consider the smallest available weight increase and return to the lower range. Repeat a load or reduce it when needed; never push through pain.</p>
    <p className="settings-note">Working sets only; warm up first. Start with fewer sets if recovery needs it. Presets are starting points, not a personalized assessment. Edit loads and exercises in your routine.</p>

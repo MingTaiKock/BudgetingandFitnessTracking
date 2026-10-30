@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowUp, ArrowDown, Plus, X, Search } from 'lucide-react';
 import { routineSchema, type Routine, type Equipment } from '../model.ts';
-import { EQUIPMENT_LABELS, searchExercises, exerciseToRoutine } from '../exercises.ts';
+import { EXERCISES, EQUIPMENT_LABELS, searchExercises, exerciseToRoutine } from '../exercises.ts';
+import ExerciseIllustration from '../ExerciseIllustration.tsx';
 import { reorderExercises } from '../routines.ts';
 import { editExercise } from '../focused.ts';
 import { Dialog, Field, FormError, type FeatureProps } from '../components.tsx';
@@ -45,15 +46,15 @@ export default function RoutineEditor({state,change,notice,onClose,existing}:Fea
     <Field label="A little description"><input name="description" maxLength={200} defaultValue={existing?.description??''} placeholder="A steady little full-body day"/></Field>
     <p className="routine-editor-summary" role="status">{exercises.length} / 10 exercises · {total} / 30 sets</p>
     {picker!==null&&<section className="exercise-library" aria-label="Exercise library">
-      <div className="exercise-library-heading"><div><h3>{picker==='add'?'Find your next exercise':`Replace exercise ${picker+1}`}</h3><p>24 strength movements. Starting sets and reps are yours to adjust.</p></div><button className="icon-button" type="button" aria-label="Close exercise library" onClick={()=>setPicker(null)}><X size={18}/></button></div>
+      <div className="exercise-library-heading"><div><h3>{picker==='add'?'Find your next exercise':`Replace exercise ${picker+1}`}</h3><p>{EXERCISES.length} strength movements. Starting sets and reps are yours to adjust.</p></div><button className="icon-button" type="button" aria-label="Close exercise library" onClick={()=>setPicker(null)}><X size={18}/></button></div>
       <div className="form-grid"><Field label="Search exercises"><input ref={searchInput} type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Try row, press, squat…"/></Field><Field label="Available equipment"><select value={equipment} onChange={e=>setEquipment(e.target.value as Equipment|'all')}><option value="all">All equipment</option>{Object.entries(EQUIPMENT_LABELS).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></Field></div>
       <p className="library-result-count" role="status">{results.length} {results.length===1?'exercise':'exercises'} found</p>
-      <ul className="exercise-library-results">{results.map(e=><li key={e.id}><div><strong>{e.name}</strong><span>{EQUIPMENT_LABELS[e.equipment]}</span></div><button className="button secondary compact" type="button" disabled={picker==='add'&&exercises.length>=10} aria-label={`${picker==='add'?'Add':'Use'} ${e.name}`} onClick={()=>choose(e.id)}>{picker==='add'?'Add':'Use'}</button></li>)}</ul>
+      <ul className="exercise-library-results">{results.map(e=><li key={e.id}><div className="exercise-with-art"><ExerciseIllustration exerciseId={e.id} equipment={e.equipment} name={e.name} size={56}/><div><strong>{e.name}</strong><span>{EQUIPMENT_LABELS[e.equipment]}</span></div></div><button className="button secondary compact" type="button" disabled={picker==='add'&&exercises.length>=10} aria-label={`${picker==='add'?'Add':'Use'} ${e.name}`} onClick={()=>choose(e.id)}>{picker==='add'?'Add':'Use'}</button></li>)}</ul>
       {!results.length&&<p>No matching exercises. Try another search or add your own below.</p>}
       <button type="button" className="text-link" disabled={picker==='add'&&exercises.length>=10} onClick={()=>{nextFocus.current=picker==='add'?exercises.length:picker;setExercises(picker==='add'?[...exercises,blankExercise()]:exercises.map((e,i)=>i===picker?blankExercise():e));setPicker(null);}}>Write a custom exercise</button>
     </section>}
     {exercises.map((exercise,i)=><section className="routine-exercise-editor" key={i}>
-      <div className="exercise-editor-heading"><h3>Exercise {i+1}</h3><div className="exercise-row-actions">
+      <div className="exercise-editor-heading"><div className="exercise-with-art"><ExerciseIllustration exerciseId={exercise.exerciseId} equipment={exercise.equipment} name={exercise.name} size={48}/><h3>Exercise {i+1}</h3></div><div className="exercise-row-actions">
         <button type="button" className="icon-button" disabled={i===0||picker!==null} aria-label={`Move exercise ${i+1} up`} onClick={()=>setExercises(reorderExercises(exercises,i,i-1))}><ArrowUp size={17}/></button>
         <button type="button" className="icon-button" disabled={i===exercises.length-1||picker!==null} aria-label={`Move exercise ${i+1} down`} onClick={()=>setExercises(reorderExercises(exercises,i,i+1))}><ArrowDown size={17}/></button>
         <button type="button" className="icon-button" disabled={picker!==null} aria-label={`Remove planned exercise ${i+1}`} onClick={()=>setExercises(exercises.filter((_,j)=>j!==i))}><X size={17}/></button>

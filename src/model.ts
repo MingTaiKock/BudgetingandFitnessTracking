@@ -54,7 +54,9 @@ export const scheduleEntrySchema=z.discriminatedUnion('kind',[
   z.object({day:z.number().int().min(0).max(6),kind:z.literal('rest')}).strict(),
 ]);
 export const connectionSchema=z.object({id,date:loggedDate,minutes:z.number().int().min(1).max(1440),activity:z.enum(['conversation','shared-meal','walk','shared-activity','other']),note:text,origin:z.literal('manual')}).strict();
-export const navigationSchema=z.object({budget:z.boolean(),fitness:z.boolean(),insights:z.boolean(),connection:z.boolean()}).strict();
+export const navigationSchema=z.object({budget:z.boolean(),fitness:z.boolean(),insights:z.boolean(),connection:z.boolean(),food:z.boolean().optional()}).strict();
+export const foodEntrySchema=z.object({id,date:loggedDate,meal:z.string().trim().min(1).max(160),portion:z.string().trim().min(1).max(100),category:z.enum(['Breakfast','Lunch','Dinner','Snack']),kcal:z.number().int().min(0).max(10000),origin:z.enum(['manual','estimate']),assumptions:z.string().max(1000),source:z.string().url().refine(value=>value.startsWith('https://'),'Use an HTTPS nutrition reference').optional()}).strict();
+export type FoodEntry=z.infer<typeof foodEntrySchema>;
 export const preferencesSchema=z.object({connectionEnabled:z.boolean(),gentleMotion:z.boolean(),navigation:navigationSchema.optional()}).strict();
 export const resetSchema=z.object({id,kind:z.enum(['pause','connection']),startedAt:z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),endsAt:z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER)}).strict().refine(r=>r.endsAt===r.startedAt+90_000,'Reset duration must be 90 seconds');
 export const scenarioSchema=z.object({id,label:z.string().trim().min(1).max(80),costCents:z.number().int().min(0).max(100_000_000),extraCostCents:z.number().int().min(0).max(100_000_000),occurrencesPerWeek:z.number().int().min(0).max(100),extraMinutes:z.number().int().min(-1440).max(1440)}).strict();
@@ -64,6 +66,7 @@ export const intentionSchema=z.object({id,label:z.string().trim().min(1).max(80)
 });
 export const stateSchema=z.object({
   version:z.literal(2),demo:z.boolean(),profile:profileSchema,
+  foodEntries:z.array(foodEntrySchema).max(10000).default([]),
   activeWorkout:sessionSchema.nullable().default(null),
   schedule:z.array(scheduleEntrySchema).max(7).default([]),
   preferences:preferencesSchema.default({connectionEnabled:false,gentleMotion:true}),
@@ -79,7 +82,7 @@ export const stateSchema=z.object({
 }).strict().superRefine((s,ctx)=>{
   if(new Set(s.schedule.map(p=>p.day)).size!==s.schedule.length)ctx.addIssue({code:'custom',message:'Plan each weekday only once'});
   if(s.schedule.some(p=>p.kind==='routine'&&!s.routines.some(r=>r.id===p.routineId)))ctx.addIssue({code:'custom',message:'Choose an existing routine for the weekly plan'});
-  const ids=[...s.transactions,...s.workouts,...s.goals,...s.routines,...s.connections,...s.scenarios,...s.intentions,...s.goals.flatMap(g=>g.contributions)].map(r=>r.id);
+  const ids=[...s.transactions,...s.workouts,...s.goals,...s.routines,...s.connections,...s.scenarios,...s.intentions,...s.foodEntries,...s.goals.flatMap(g=>g.contributions)].map(r=>r.id);
   if(new Set(ids).size!==ids.length)ctx.addIssue({code:'custom',message:'Record IDs must be unique'});
   if(s.activeWorkout&&ids.includes(s.activeWorkout.id))ctx.addIssue({code:'custom',message:'Active session has already been recorded'});
   if(new Set(s.owned).size!==s.owned.length)ctx.addIssue({code:'custom',message:'Cosmetics must be unique'});

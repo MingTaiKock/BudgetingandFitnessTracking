@@ -3,7 +3,7 @@ import { parseMoney } from './domain.ts';
 import { dateKey, addDays, weekStart, shiftMonth } from './dates.ts';
 import { starterRoutines } from './routines.ts';
 export function freshState(profile?:Profile):State {
-  return {version:2,demo:false,activeWorkout:null,activeReset:null,preferences:{connectionEnabled:false,gentleMotion:true},connections:[],scenarios:[],scenarioApplications:[],intentions:[],schedule:[],profile:profile??{name:'Mochi',coachName:'Chonk',currency:'SGD',weeklyTarget:3,waterTarget:8},budgets:[],transactions:[],workouts:[],goals:[],routines:starterRoutines(),checkins:{},owned:[]};
+  return {version:2,demo:false,foodEntries:[],activeWorkout:null,activeReset:null,preferences:{connectionEnabled:false,gentleMotion:true},connections:[],scenarios:[],scenarioApplications:[],intentions:[],schedule:[],profile:profile??{name:'Mochi',coachName:'Chonk',currency:'SGD',weeklyTarget:3,waterTarget:8},budgets:[],transactions:[],workouts:[],goals:[],routines:starterRoutines(),checkins:{},owned:[]};
 }
 export type SetupChoices={profile:Profile,budget:Record<Category,string>|null,routines:'gentle'|'gym'|'both'|'later'};
 export function createPersonalJourney(source:State,choices:SetupChoices):State {

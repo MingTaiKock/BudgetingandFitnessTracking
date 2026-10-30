@@ -12,6 +12,7 @@ export default function HabitatHome({state,go,resume}:{state:FeatureProps['state
    <button className="home-zone connection" onClick={()=>go('connection')}><Heart/>Connection corner</button>
   </section>
   <div className="habitat-below"><p>Choose a zone to explore your little wins.</p><button className="text-link" onClick={()=>go('insights')}>This week’s insights <ArrowRight size={18}/></button></div>
+  <div className="food-home-link"><button className="button secondary" onClick={()=>go('food')}>Food diary <ArrowRight size={17}/></button></div>
   <section className="panel habitat-next"><Companion name={state.activeWorkout?'pair-flexing':planned?.kind==='rest'?'golden-resting':'pair-cuddle'} size={112} className="habitat-companion"/><div><h2>{state.activeWorkout?'Your workout is waiting':routine?routine.name:planned?.kind==='rest'?'Make room for rest':'Your movement, at your pace'}</h2><p>{state.activeWorkout?`${state.activeWorkout.routine.name} · ${state.activeWorkout.entries.length} sets recorded`:routine?`${routine.exercises.length} exercises · your plan for today`:'Choose a routine, log a walk, or take a rest day.'}</p></div><button className="button primary" onClick={()=>state.activeWorkout?resume():go('fitness')}>{state.activeWorkout?'Resume workout':'Open movement'}<ArrowRight size={17}/></button></section>
  </div>;
 }

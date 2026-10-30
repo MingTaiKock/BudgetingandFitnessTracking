@@ -1,9 +1,9 @@
 import {useEffect,useState} from 'react';
-import {Home,Wallet,Dumbbell,BarChart3,Heart} from 'lucide-react';
+import {Home,Wallet,Dumbbell,BarChart3,Heart,Utensils} from 'lucide-react';
 import {DEFAULT_NAVIGATION,NAVIGATION_DESTINATIONS,resolveNavigation,sameNavigation,visibleDestinations,type NavigationVisibility} from '../navigation.ts';
 import '../navigation.css';
 
-export const NAVIGATION_ICONS={habitat:Home,budget:Wallet,fitness:Dumbbell,insights:BarChart3,connection:Heart};
+export const NAVIGATION_ICONS={habitat:Home,budget:Wallet,fitness:Dumbbell,food:Utensils,insights:BarChart3,connection:Heart};
 export default function NavigationSettings({value,onSave,saveLabel,warning,pending=false,conflict=false,onRetry,cloud=false,demo=false}:{value:NavigationVisibility,onSave:(value:NavigationVisibility)=>boolean,saveLabel:string,warning:string|null,pending?:boolean,conflict?:boolean,onRetry?:()=>void,cloud?:boolean,demo?:boolean}){
  const [draft,setDraft]=useState(()=>resolveNavigation(value)),[base,setBase]=useState(()=>resolveNavigation(value)),[submitted,setSubmitted]=useState(false),[error,setError]=useState('');
  const dirty=!sameNavigation(draft,value),changedElsewhere=!sameNavigation(base,value)&&dirty;

@@ -4,7 +4,7 @@ import { monthLabel, shiftMonth } from './dates.ts';
 import type { State } from './model.ts';
 import type { StickerName } from './Sticker.tsx';
 import { Companion, type CompanionName } from './Companion.tsx';
-export type View='today'|'budget'|'fitness'|'journey'|'settings'|'insights'|'connection'|'habitat'|'future'|'streaks'|'planner'|'review';
+export type View='today'|'budget'|'fitness'|'food'|'journey'|'settings'|'insights'|'connection'|'habitat'|'future'|'streaks'|'planner'|'review';
 export type FeatureProps={state:State,change:(next:State)=>boolean,notice:(text:string,sticker?:StickerName)=>void};
 export function Progress({value,max,color,label='Progress'}: {value:number,max:number,color?:string,label?:string}) {
   const pct=max>0?Math.min(100,Math.max(0,value/max*100)):value>0?100:0;
