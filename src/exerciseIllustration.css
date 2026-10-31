@@ -15,11 +15,13 @@
 .recap-exercises .exercise-with-art{margin:10px 0}
 .guided-exercise>.exercise-with-art{margin:16px 0}
 .exercise-editor-heading>.exercise-with-art{flex:1}
+.guided-exercise>.selected-exercise-art{flex-direction:column;align-items:flex-start}
+.guided-exercise>.selected-exercise-art .exercise-illustration{align-self:center;width:240px!important;height:240px!important;max-width:100%}
 @media(max-width:450px){
  .routine-exercise-link{grid-template-columns:48px minmax(0,1fr)}
  .routine-exercise-link>.exercise-illustration{width:48px!important;height:48px!important;grid-row:1 / span 2}
  .routine-exercise-link>strong{grid-column:2;justify-self:start}
  .exercise-with-art{gap:8px}
- .guided-exercise>.exercise-with-art .exercise-illustration{width:88px!important;height:88px!important}
+ .guided-exercise>.selected-exercise-art .exercise-illustration{width:184px!important;height:184px!important}
  .exercise-library-results .exercise-illustration{width:44px!important;height:44px!important}
 }

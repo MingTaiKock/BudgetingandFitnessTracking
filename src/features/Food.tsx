@@ -4,24 +4,37 @@ import {Dialog,Field,FormError,Empty,type FeatureProps} from '../components.tsx'
 import {type FoodEntry} from '../model.ts';
 import {dateKey} from '../dates.ts';
 import {foodDayTotal,saveFoodEntry,removeFoodEntry,type FoodEstimate} from '../food.ts';
-import {COMMON_FOODS,estimateFood} from '../foodEstimate.ts';
+import {COMMON_FOODS,estimateFood,foodOptions} from '../foodEstimate.ts';
 import '../food.css';
 const CATEGORIES=['Breakfast','Lunch','Dinner','Snack'] as const;
 export function FoodEditor({state,change,notice,onClose,existing,copy=false,date=dateKey()}:FeatureProps&{onClose:()=>void,existing?:FoodEntry,copy?:boolean,date?:string}) {
  const [meal,setMeal]=useState(existing?.meal??''),[portion,setPortion]=useState(existing?.portion??''),[day,setDay]=useState(copy?date:existing?.date??date),[category,setCategory]=useState<FoodEntry['category']>(existing?.category??'Lunch');
  const [kcal,setKcal]=useState(existing?String(existing.kcal):''),[review,setReview]=useState(Boolean(existing)),[estimate,setEstimate]=useState<FoodEstimate|null>(existing?.origin==='estimate'?{kcal:existing.kcal,assumptions:existing.assumptions,source:existing.source}:null),[error,setError]=useState('');
  const submitting=useRef(false),id=useRef(existing&&!copy?existing.id:crypto.randomUUID());
+ const [density,setDensity]=useState('');
+ const options=foodOptions(state.foodEntries);
+ const weightPortion=/^\s*\d+(?:\.\d+)?\s*(g|grams?|kg|kilograms?)\s*$/i.test(portion);
+ function chooseMeal(name:string){
+  setMeal(name);setDensity('');invalidate();
+  const saved=[...state.foodEntries].reverse().sort((a,b)=>b.date.localeCompare(a.date)).find(e=>e.meal.trim().toLowerCase()===name.trim().toLowerCase());
+  if(saved){setPortion(saved.portion);setKcal(String(saved.kcal));setReview(true);setEstimate(saved.origin==='estimate'?{kcal:saved.kcal,assumptions:saved.assumptions,source:saved.source}:null);}
+  else {const common=COMMON_FOODS.find(f=>f.name===name);if(common)setPortion(`1 ${common.unit}`);}
+ }
  const invalidate=()=>{setReview(false);setEstimate(null);setKcal('');setError('');};
- function calculate(){setError('');if(!meal.trim()||!portion.trim()){setError('Enter a meal and a rough portion first.');return;}const result=estimateFood(meal,portion);if(result.kind!=='estimate'){setError(result.message);return;}setEstimate(result.value);setKcal(String(result.value.kcal));setReview(true);}
+ function calculate(){setError('');if(!meal.trim()||!portion.trim()){setError('Enter a meal and a rough portion first.');return;}const result=estimateFood(meal,portion,weightPortion&&density.trim()!==''?Number(density):undefined);if(result.kind!=='estimate'){setError(result.message);return;}setEstimate(result.value);setKcal(String(result.value.kcal));setReview(true);}
  function submit(e:FormEvent){e.preventDefault();if(submitting.current)return;if(!review||kcal.trim()===''){setError('Estimate the meal or enter calories before saving.');return;}try{const next=saveFoodEntry(state,{id:id.current,date:day,meal,portion,category,kcal:Number(kcal),origin:estimate?'estimate':'manual',assumptions:estimate?.assumptions??'',...(estimate?.source?{source:estimate.source}:{})});submitting.current=true;if(!change(next)){submitting.current=false;setError('This meal could not be saved. Your entry is kept here; check the saving notice.');return;}notice(existing&&!copy?'Meal updated.':'Meal recorded. A little more awareness for today.');onClose();}catch{submitting.current=false;setError('Use a valid date, a meal and portion, and whole calories from 0 to 10,000.');}}
  return <Dialog title={existing&&!copy?'Edit meal':copy?'Log this meal again':'What did you eat?'} onClose={onClose}><form onSubmit={submit}>
   <p className="dialog-description">Describe your meal and a rough portion. Review the estimate before saving.</p>
-  <Field label="Meal"><input autoComplete="off" list="common-foods" required maxLength={160} value={meal} placeholder="e.g. Roasted chicken rice" onChange={e=>{setMeal(e.target.value);invalidate();}}/><datalist id="common-foods">{COMMON_FOODS.map(f=><option key={f.name} value={f.name}/>)}</datalist></Field>
+  <Field label="Choose a common or saved meal"><select value={options.includes(meal)?meal:''} onChange={e=>chooseMeal(e.target.value)}><option value="">Select a meal, or type below</option>{options.map(name=><option key={name} value={name}>{name}</option>)}</select></Field>
+  <Field label="Meal"><input autoComplete="off" required maxLength={160} value={meal} placeholder="Choose above or type any meal" onChange={e=>{setMeal(e.target.value);setDensity('');invalidate();}}/></Field>
+  <p className="food-help">New meal names appear in your options after you save them. Saved meals bring back their last portion and calories for you to review.</p>
+  <Field label="Portion unit"><select value={portion.match(/\s(g|kg|plate|bowl|piece|serving)$/)?.[1]??''} onChange={e=>{if(!e.target.value)return;setPortion(`${e.target.value==='g'?'100':'1'} ${e.target.value}`);invalidate();}}><option value="">Choose a unit or describe below</option><option value="serving">Serving</option><option value="plate">Plate</option><option value="bowl">Bowl</option><option value="piece">Piece</option><option value="g">Grams (g)</option><option value="kg">Kilograms (kg)</option></select></Field>
   <Field label="Rough portion"><input required maxLength={100} value={portion} placeholder="e.g. 1 plate or half a plate" onChange={e=>{setPortion(e.target.value);invalidate();}}/></Field>
+  {weightPortion&&<Field label="Label calories per 100 g (if known)"><input type="number" min={0} max={1000} step="any" value={density} placeholder="e.g. 160" onChange={e=>{setDensity(e.target.value);invalidate();}}/><small>Leave blank for meals with a verified gram reference. Otherwise use the food label; we never assume a plate's weight.</small></Field>}
   <div className="form-grid"><Field label="Meal time"><select value={category} onChange={e=>setCategory(e.target.value as FoodEntry['category'])}>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select></Field><Field label="Date"><input type="date" required min="1900-01-01" max={dateKey()} value={day} onChange={e=>setDay(e.target.value)}/></Field></div>
   <div className="food-estimate-actions"><button className="button primary" type="button" onClick={calculate}>Estimate calories</button><button className="text-link" type="button" onClick={()=>{setEstimate(null);setReview(true);setError('');}}>Enter calories myself</button></div>
   <p className="food-help">Estimates currently cover {COMMON_FOODS.length} common meals listed in the suggestions. Other meals need a manual value. </p>
-  {review&&<section className="food-estimate" aria-label="Review calories"><h3>{estimate?`About ${estimate.kcal} kcal`:'Your calorie value'}</h3>{estimate&&<><p>{estimate.assumptions}</p><a href={estimate.source} target="_blank" rel="noreferrer">Nutrition reference · Singapore Heart Foundation</a></>}<Field label="Calories to save (kcal)"><input type="number" required min={0} max={10000} step={1} value={kcal} onChange={e=>{setKcal(e.target.value);setEstimate(null);}}/></Field><small>{estimate?'Approximate, based on the reference portion.':'Your own value. Changing calories makes this a manual entry.'}</small></section>}
+  {review&&<section className="food-estimate" aria-label="Review calories"><h3>{estimate?`About ${estimate.kcal} kcal`:'Your calorie value'}</h3>{estimate&&<><p>{estimate.assumptions}</p>{estimate.source&&<a href={estimate.source} target="_blank" rel="noreferrer">Nutrition reference</a>}</>}<Field label="Calories to save (kcal)"><input type="number" required min={0} max={10000} step={1} value={kcal} onChange={e=>{setKcal(e.target.value);setEstimate(null);}}/></Field><small>{estimate?'Approximate, based on the reference portion.':'Your own value. Changing calories makes this a manual entry.'}</small></section>}
   <FormError error={error}/><div className="form-actions"><button className="button secondary" type="button" onClick={onClose}>Cancel</button><button className="button primary" type="submit" disabled={!review}>Save meal</button></div>
  </form></Dialog>;
 }

@@ -65,7 +65,7 @@ export default function WorkoutSession({state,change,notice,onClose,onFinished,s
         <div className="guided-exercise">
           <p className="exercise-position">Exercise {index+1} of {routine.exercises.length}</p>
           <Field label="All exercises"><select value={index} onChange={e=>go(Number(e.target.value))}>{routine.exercises.map((e,i)=><option value={i} key={i}>{i+1}. {e.name}</option>)}</select></Field>
-          <div className="exercise-with-art"><ExerciseIllustration exerciseId={exercise.exerciseId} equipment={exercise.equipment} name={exercise.name} size={112}/><div><h3>{exercise.name}</h3></div></div>
+          <div className="exercise-with-art selected-exercise-art"><ExerciseIllustration exerciseId={exercise.exerciseId} equipment={exercise.equipment} name={exercise.name} size={240}/><div><h3>{exercise.name}</h3></div></div>
           {(exercise.equipment||exercise.plannedKg!==undefined)&&<p className="workout-equipment">{exercise.equipment?EQUIPMENT_LABELS[exercise.equipment]:'Custom exercise'}{exercise.plannedKg!==undefined?` · ${exercise.plannedKg} kg planned`:''}</p>}
           <div className="rep-target"><strong>{exercise.repMin}–{exercise.repMax}</strong><span>target reps · {exercise.sets} sets</span></div>
           <p className="exercise-cue">{exercise.cue||'Move at your own pace. Use a comfortable range and load.'}</p>

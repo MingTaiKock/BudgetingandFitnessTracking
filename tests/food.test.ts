@@ -4,8 +4,24 @@ import {freshState} from '../src/demo.ts';
 import {stateSchema} from '../src/model.ts';
 import {createBackup,parseBackup} from '../src/domain.ts';
 import {foodDayTotal,saveFoodEntry,removeFoodEntry} from '../src/food.ts';
-import {estimateFood} from '../src/foodEstimate.ts';
+import {estimateFood,foodOptions} from '../src/foodEstimate.ts';
 const meal={id:'food-1',date:'2026-10-01',meal:'Chicken rice',portion:'1 plate',category:'Lunch' as const,kcal:600,origin:'manual' as const,assumptions:''};
+
+test('meal options start populated and include saved free text without case duplicates',()=>{
+ const options=foodOptions([{...meal,meal:'My oats'},{...meal,meal:' my OATS '}]);
+ assert.ok(options.includes('Roasted chicken rice'));
+ assert.equal(options.filter(x=>x.toLowerCase()==='my oats').length,1);
+});
+test('weight estimates scale known recipe grams or a supplied label without guessing dish weights',()=>{
+ const recipe=estimateFood('Brown chicken rice (HPB recipe)','130 g');
+ assert.equal(recipe.kind,'estimate');if(recipe.kind==='estimate')assert.equal(recipe.value.kcal,151);
+ const label=estimateFood('My oats','250 grams',160);
+ assert.equal(label.kind,'estimate');if(label.kind==='estimate'){assert.equal(label.value.kcal,400);assert.match(label.value.assumptions,/160 kcal per 100 g/);}
+ assert.equal(estimateFood('Chicken rice','200 g').kind,'portion');
+ for(const value of [NaN,Infinity,-1,1001])assert.equal(estimateFood('My oats','100 g',value).kind,'portion');
+ assert.equal(estimateFood('My oats','0 g',160).kind,'portion');
+ assert.equal(estimateFood('My oats','2 bowls',160).kind,'unknown');
+});
 test('estimates use a sourced reference and scale only understood portions',()=>{
  const full=estimateFood('roasted chicken rice','1 plate');assert.equal(full.kind,'estimate');if(full.kind!=='estimate')return;assert.equal(full.value.kcal,525);assert.match(full.value.source!,/^https:/);
  const half=estimateFood('roasted chicken rice','half a plate');assert.equal(half.kind,'estimate');if(half.kind==='estimate')assert.equal(half.value.kcal,263);
