@@ -1,5 +1,5 @@
 export type NavigationVisibility={budget:boolean,fitness:boolean,insights:boolean,connection:boolean,food?:boolean};
-export const DEFAULT_NAVIGATION:Readonly<NavigationVisibility>={budget:true,fitness:true,insights:true,connection:false,food:false};
+export const DEFAULT_NAVIGATION:Readonly<NavigationVisibility>={budget:true,fitness:true,insights:true,connection:false,food:true};
 export const NAVIGATION_DESTINATIONS=[
  {id:'habitat',label:'Home',description:'Your habitat'},
  {id:'budget',label:'Money',description:'Budget & savings'},
