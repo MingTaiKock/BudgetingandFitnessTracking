@@ -8,6 +8,7 @@ import { removeRoutine } from '../routines.ts';
 import { EQUIPMENT_LABELS } from '../exercises.ts';
 import RoutineEditor from './RoutineEditor.tsx';
 import WorkoutPresetPicker from './WorkoutPresetPicker.tsx';
+import ReferenceReview from './ReferenceReview.tsx';
 export type RoutineActions={onStartRoutine:(routine:Routine,index?:number)=>void,onResumeWorkout:()=>void};
 export default function Routines({onStartRoutine,onResumeWorkout,...props}:FeatureProps & RoutineActions) {
   const {state,change}=props;
@@ -22,6 +23,7 @@ export default function Routines({onStartRoutine,onResumeWorkout,...props}:Featu
       <button className="button primary full" disabled={Boolean(state.activeWorkout)} onClick={()=>onStartRoutine(routine)}><Play size={15}/>{state.activeWorkout?'Resume your active workout above':'Start this routine'}</button>
     </section>)}</div>}
     <p className="routine-safety-note">Starter routines are editable examples. Choose exercises and loads that suit you; your actual reps can differ from the target.</p>
+    <ReferenceReview state={state} kind="exercises"/>
     {editor!==undefined&&<RoutineEditor {...props} existing={editor??undefined} onClose={()=>setEditor(undefined)}/>}
   </>;
 }
