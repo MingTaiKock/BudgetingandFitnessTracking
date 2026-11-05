@@ -1,6 +1,6 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { lazy, useEffect, useState, useSyncExternalStore } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import App from '../App.tsx';
+const App=lazy(()=>import('../App.tsx'));
 import { supabase } from '../cloud/client.ts';
 import { createJourneyController, recoveryKey } from '../cloud/controller.ts';
 import { createRepository } from '../cloud/repository.ts';

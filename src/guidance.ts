@@ -7,7 +7,7 @@ export function weeklyWins(state:State,today:string){
  const savings=state.goals.flatMap(g=>g.contributions).filter(c=>inWeek(c.date));
  const workouts=state.workouts.filter(w=>inWeek(w.date));
  const checkins=Object.entries(state.checkins).filter(([date,c])=>inWeek(date)&&(c.water>0||c.mood!==null||c.rest));
- return {start,loggingDays:new Set([...transactions,...savings,...workouts].map(r=>r.date).concat(checkins.map(([date])=>date))).size,savingsDays:new Set(savings.map(c=>c.date)).size,workouts:workouts.length};
+ return {start,loggingDays:new Set([...transactions,...savings,...workouts,...state.foodEntries.filter(entry=>inWeek(entry.date))].map(r=>r.date).concat(checkins.map(([date])=>date))).size,savingsDays:new Set(savings.map(c=>c.date)).size,workouts:workouts.length};
 }
 
 export function spendingBaseline(state:State,month:string){

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Check, ChevronLeft, ChevronRight, RotateCcw, Timer, X } from 'lucide-react';
 import type { WorkoutSession as Session } from '../model.ts';
 import { finishSession, selectExercise } from '../routines.ts';
+import { workoutSuggestion } from '../workoutSuggestion.ts';
 import { exerciseHistory } from '../exerciseProgress.ts';
 import { EQUIPMENT_LABELS } from '../exercises.ts';
 import ExerciseIllustration from '../ExerciseIllustration.tsx';
@@ -15,14 +16,15 @@ export default function WorkoutSession({state,change,notice,onClose,onFinished,s
   const [discard,setDiscard]=useState(false);
   useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(timer);},[]);
   const session=state.activeWorkout;
-  const previous=useMemo(()=>session?exerciseHistory(state.workouts,session.routine.exercises[session.index],session.date,'all',session.id)[0]:undefined,[state.workouts,session?.routine,session?.index,session?.date,session?.id]);
+  const allHistory=useMemo(()=>session?exerciseHistory(state.workouts,session.routine.exercises[session.index],session.date,'all',session.id):[],[state.workouts,session?.routine,session?.index,session?.date,session?.id]);
+  const previous=allHistory[0];
   if(!session)return null;
   const {routine,index,entries,reps,kg}=session;
   const exercise=routine.exercises[index];
   const done=entries.filter(e=>e.exerciseIndex===index).length;
   const total=routine.exercises.reduce((sum,e)=>sum+e.sets,0);
   const elapsed=Math.max(0,Math.floor((now-session.startedAt)/1000));
-  const allHistory=exerciseHistory(state.workouts,exercise,session.date,'all',session.id);
+  const suggestion=workoutSuggestion(exercise,previous,session.date);
   const template=state.routines.find(r=>r.id===routine.id);
   const changed=template&&JSON.stringify(template)!==JSON.stringify(routine);
   const rest=Math.max(0,Math.ceil(((session.restEndsAt??0)-now)/1000));
@@ -70,6 +72,13 @@ export default function WorkoutSession({state,change,notice,onClose,onFinished,s
           <div className="rep-target"><strong>{exercise.repMin}–{exercise.repMax}</strong><span>target reps · {exercise.sets} sets</span></div>
           <p className="exercise-cue">{exercise.cue||'Move at your own pace. Use a comfortable range and load.'}</p>
           <aside className="previous-exercise" aria-label="Previous exercise history">{previous?<><strong>Last logged day · {previous.date}</strong><p>{previous.sets.map(s=>`${s.sets} × ${s.reps} reps at ${s.kg} kg`).join(' · ')}</p><small>Same exercise and equipment. A reference, not a target.</small><details><summary>View history ({allHistory.length} days)</summary>{allHistory.map(day=><p key={day.date}><time dateTime={day.date}>{day.date}</time> · {day.sets.map(s=>`${s.sets} × ${s.reps} reps · ${s.kg} kg`).join('; ')}</p>)}</details></>:<p>{exercise.exerciseId&&exercise.equipment?'No earlier entries for this exercise and equipment. Older unlinked sets can be connected in Movement → History.':'Choose equipment in your routine to compare loads. Link older entries in Movement → History; they remain in your diary.'}</p>}</aside>
+          {suggestion&&done===0&&<aside className="previous-exercise" aria-label="Next set suggestion">
+            <strong>Your first set</strong><p>{suggestion.message}</p>
+            <div className="filter-row">
+              {suggestion.nextReps!==null&&<button className="button secondary" onClick={()=>update({...suggestion.repeat,reps:String(suggestion.nextReps)})}>Try {suggestion.nextReps} reps</button>}
+              <button className="text-link" onClick={()=>update(suggestion.repeat)}>Repeat {suggestion.repeat.reps} reps at {suggestion.repeat.kg} kg</button>
+            </div>
+          </aside>}
           <div className="set-dots" aria-label={`${done} of ${exercise.sets} sets completed for ${exercise.name}`}>{Array.from({length:exercise.sets},(_,i)=><span key={i} className={i<done?'complete':''}>{i<done?<Check size={16}/>:i+1}</span>)}</div>
           <div className="form-grid">
             <Field label="Actual reps"><input aria-label="Actual reps" type="number" inputMode="numeric" min={1} max={1000} step={1} value={reps} onChange={e=>update({reps:e.target.value.slice(0,20)})}/></Field>
